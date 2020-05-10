@@ -1,31 +1,14 @@
 package Solution;
 
-import Provided.StoryTester;
+import Provided.*;
 
 import java.lang.annotation.*;
 import java.lang.reflect.Method;
-
-enum testEnum{
-    test1,test2
-}
+import java.util.ArrayList;
 
 
 public class StoryTesterImpl implements StoryTester {
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface Given{
-        String value();
-    }
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface When{
-        String value();
-    }
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface Then{
-        String value();
-    }
+
 
     Class<? extends Annotation> annotationMaker(String annot){
         if(annot.equals("Given")) {
@@ -111,30 +94,33 @@ public class StoryTesterImpl implements StoryTester {
     }
 
 
+     ArrayList<ArrayList<String>> StoryBreakdown(String story){
+        int index = 0;
+        String[] singleSentence = story.split("\n");
+
+        ArrayList<ArrayList<String>> mySentences = new ArrayList<>();
+        ArrayList<String> tmpSentence;
+        for(String currFullSentence: singleSentence){
+            String[] currSentenceWords = currFullSentence.split(" ");
+            ArrayList<String> currSentenceList = new ArrayList<>();
+            mySentences.add(index, currSentenceList);
+            tmpSentence = mySentences.get(index);
+            for(String word: currSentenceWords){
+                tmpSentence.add(word);
+            }
+            index++;
+        }
+        return mySentences;
+    }
+
+
 
 
     @Override
     public void testOnInheritanceTree(String story, Class<?> testClass) throws Exception {
         //TODO: Create object of testClass
-        String[] sentences = story.split("\n"); // splits by new line
 
-        for (String sentence : sentences) {
-            String[] words= sentence.split("\\s+"); // splits by whitespace
-            String content="";
-            for(int i=1;i<words.length;i++){
-               content.concat(words[i]);
-            }
 
-            Annotation myAnnotation=getAnnotation(words[0],content);
-            Class annotClass=myAnnotation.getClass();
-
-            for(Method method : testClass.getDeclaredMethods()){
-                if (method.isAnnotationPresent(annotClass)) {
-                    //TODO: Call testClass method with myAnnotation
-                }
-            }
-
-        }
     }
 
     @Override
