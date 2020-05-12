@@ -297,8 +297,4 @@ public class StoryTesterImpl implements StoryTester {
 
     }
 
-    @Override
-    public void testOnNestedClasses(String story, Class<?> testClass) throws Exception {
-        //TODO: Implement
-    }
 }
