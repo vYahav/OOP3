@@ -275,7 +275,7 @@ public class StoryTesterImpl implements StoryTester {
 
 
     HashMap<Method,ArrayList<ArrayList>> classTreeCheck(ArrayList<String> mySentence, Class<?> testClass){ //Checks in class tree if a method which matches our needs exists
-        Class superClass;
+        Class superClass=testClass.getSuperclass();
         HashMap<Method, ArrayList<ArrayList>> goodm;
 
         if(testClass == null) return new HashMap<>(); //null check
@@ -283,7 +283,7 @@ public class StoryTesterImpl implements StoryTester {
         goodm = getAnnotationsMethod(mySentence, testClass);
         if(!(goodm.isEmpty())) return goodm; //empty check
 
-        superClass=testClass.getSuperclass();
+
         return classTreeCheck(mySentence, superClass);
     }
 
