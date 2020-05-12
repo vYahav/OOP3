@@ -117,7 +117,31 @@ public class StoryTesterImpl implements StoryTester {
         return mySentences;
     }
 
-     ArrayList<ArrayList> getParametersOfGivenAnnotation(ArrayList<String> sentenceList, Given given){
+
+
+     Object[] ObjectToType(ArrayList<String> originList, Class[] typeArr){
+        //This func check if every parameter is of type integer or string
+        //and inserts the type of the parameter to the corresponding place in the array of classes.
+        int typesLen=typeArr.length;
+        Object[] myParameters = new Object[typesLen];
+        int index=0;
+        for(String s: originList){
+            try{
+                myParameters[index] = Integer.parseInt(s);
+                typeArr[index] = Integer.class;
+                index++;
+            }catch(NumberFormatException e){
+                myParameters[index] = s;
+                typeArr[index] = String.class;
+                index++;
+            }
+        }
+        return myParameters;
+    }
+
+
+
+    ArrayList<ArrayList> getParametersOfGivenAnnotation(ArrayList<String> sentenceList, Given given){
         ArrayList<String> sentence = new ArrayList<>(sentenceList);//Create a copy of my sentence list
         sentence.remove(0); //Remove "Given" from my sentence
 
@@ -262,6 +286,8 @@ public class StoryTesterImpl implements StoryTester {
         superClass=testClass.getSuperclass();
         return classTreeCheck(mySentence, superClass);
     }
+
+
 
 
     @Override
