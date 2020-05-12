@@ -238,7 +238,7 @@ public class StoryTesterImpl implements StoryTester {
          ArrayList<ArrayList> tmp;
 
         if(sentence.get(0).equals("Given")) {
-            for( Method m: Arrays.stream(testClass.getDeclaredMethods()).filter(m -> m.isAnnotationPresent(Given.class)).collect(Collectors.toList()) ){
+            for(Method m: Arrays.stream(testClass.getDeclaredMethods()).filter(m -> m.isAnnotationPresent(Given.class)).collect(Collectors.toList())){
                 tmp = getParametersOfGivenAnnotation(sentence, m.getAnnotation(Given.class));
                 if(!(tmp.isEmpty())){
                     m.setAccessible(true);
@@ -249,7 +249,7 @@ public class StoryTesterImpl implements StoryTester {
             return myMethod;
         }
         if(sentence.get(0).equals("When")) {
-            for( Method m: Arrays.stream(testClass.getDeclaredMethods()).filter(m -> m.isAnnotationPresent(When.class)).collect(Collectors.toList()) ){
+            for(Method m: Arrays.stream(testClass.getDeclaredMethods()).filter(m -> m.isAnnotationPresent(When.class)).collect(Collectors.toList())){
                 tmp = getParametersOfWhenAnnotation(sentence, m.getAnnotation(When.class));
                 if(!(tmp.isEmpty())){
                     m.setAccessible(true);
@@ -260,7 +260,7 @@ public class StoryTesterImpl implements StoryTester {
             return myMethod;
         }
          if(sentence.get(0).equals("Then")) {
-            for( Method m: Arrays.stream(testClass.getDeclaredMethods()).filter(m -> m.isAnnotationPresent(Then.class)).collect(Collectors.toList()) ){
+            for(Method m: Arrays.stream(testClass.getDeclaredMethods()).filter(m -> m.isAnnotationPresent(Then.class)).collect(Collectors.toList())){
                 tmp = getParametersOfThenAnnotation(sentence, m.getAnnotation(Then.class));
                 if(!(tmp.isEmpty())){
                     m.setAccessible(true);
