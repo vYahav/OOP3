@@ -8,14 +8,21 @@ public class Cat {
     private int age,hoursCleaningFloors;
     private String name;
     private boolean peeOnFloor;
+    private  int kaki_size;
 
     public Cat(int age) {
         this.age = age;
         this.hoursCleaningFloors=0;
         this.peeOnFloor = false;
+        int kaki_size = 0; //size is 0,1,2
         name="";
     }
-
+public void Kaki(int size){
+      this.kaki_size = size;
+    }
+public int GetKaki(){
+        return this.kaki_size;
+}
     public Cat(int age , String  name) {
         this.age = age;
         this.hoursCleaningFloors=0;
@@ -30,6 +37,7 @@ public class Cat {
             hoursCleaningFloors=0;
         }
     }
+
 
     public void hoursCleaningFloors(int hours) {
         if(this.peeOnFloor){
