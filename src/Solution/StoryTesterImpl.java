@@ -98,7 +98,6 @@ public class StoryTesterImpl implements StoryTester {
     }
 
 
-/** Returns an array o s*/
      ArrayList<ArrayList<String>> StoryBreakdown(String story){
         int index = 0;
         String[] singleSentence = story.split("\n");
@@ -142,7 +141,7 @@ public class StoryTesterImpl implements StoryTester {
 
 
 
-    ArrayList<String> getParametersOfGivenAnnotation(ArrayList<String> sentenceList, Given given){
+    ArrayList<ArrayList> getParametersOfGivenAnnotation(ArrayList<String> sentenceList, Given given){
         ArrayList<String> sentence = new ArrayList<>(sentenceList);//Create a copy of my sentence list
         sentence.remove(0); //Remove "Given" from my sentence
 
@@ -150,12 +149,14 @@ public class StoryTesterImpl implements StoryTester {
          int myWordsLen=myWords.length;
         if(sentence.size() != myWordsLen) return new ArrayList<>(); //If my sentence does not match annotation, return empty list.
 
-         ArrayList<String> parameters = new ArrayList<>();
-
+         ArrayList<ArrayList> parameters = new ArrayList<>();
+         ArrayList<String> param_inst = new ArrayList<>();
+         parameters.add(param_inst);
 
         for(int i = 0; i < myWordsLen; i++ ){ //For loop through the words in the annotation
             if('&' == myWords[i].charAt(0)){ //Checks if current word in annotation is a value which needs to be provided.
-                .add(sentence.get(i));
+                ArrayList<String> tmp = parameters.get(0);
+                tmp.add(sentence.get(i));
                 continue;
             }
 
@@ -231,13 +232,13 @@ public class StoryTesterImpl implements StoryTester {
     }
 
 
+    class MethodAndParams{
+        Method method;
+        ArrayList<ArrayList> parameters;
+    }
 
-     HashMap<Method,ArrayList<ArrayList>> getAnnotationsMethod(ArrayList<String> sentence, Class<?> testClass){//If class has a method with same annotation, return its methods with the list of parameters.
-         class MetAndParam{
-             Method method;
-             ArrayList<String> params;
-         }
 
+     MethodAndParams getAnnotationsMethod(ArrayList<String> sentence, Class<?> testClass){//If class has a method with same annotation, return its methods with the list of parameters.
          HashMap<Method, ArrayList<ArrayList>> myMethod = new HashMap<>();
          ArrayList<ArrayList> tmp;
 
@@ -298,9 +299,10 @@ public class StoryTesterImpl implements StoryTester {
     public void testOnInheritanceTree(String story, Class<?> testClass) throws Exception {
         ArrayList<ArrayList<String>> words = StoryBreakdown(story);
         for(int i = 0 ; i< words.size() ; i++){
-        HashMap<Method,ArrayList<ArrayList>> c = getAnnotationsMethod(words.get(0) , testClass);
+            HashMap<Method,ArrayList<ArrayList>> c = getAnnotationsMethod(words.get(0) , testClass);
+
+
 
         }
 
-    }
 }
