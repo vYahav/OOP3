@@ -9,25 +9,28 @@ public class StoryTestExceptionImpl extends StoryTestException {
      List<String> actualStory;
      List<String> expectedStory;
      String mySentence;
-     int numOfFail;
+     int numOfFails;
 
 
 
     public StoryTestExceptionImpl(){
 
         expectedStory = new ArrayList<>();
-        numOfFail = 0;
+        numOfFails = 0;
         actualStory = new ArrayList<>();
         mySentence = null;
     }
     @Override
-    public String getSentance() {
+    public String getSentence() {
         return mySentence;
     }
     public StoryTestExceptionImpl setSentence(String s){
         mySentence = new String(s);
         return this;
     }
+
+
+
     @Override
     public List<String> getStoryExpected() {
         return expectedStory;
@@ -46,10 +49,10 @@ public class StoryTestExceptionImpl extends StoryTestException {
     }
     @Override
     public int getNumFail() {
-        return numOfFail;
+        return numOfFails;
     }
     public StoryTestExceptionImpl incNumFails(){
-        numOfFail++;
+        numOfFails++;
         return this;
     }
 
