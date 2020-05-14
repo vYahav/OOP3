@@ -4,7 +4,7 @@ import Provided.StoryTestException;
 
 import java.util.ArrayList;
 import java.util.List;
-
+/*
 public class StoryTestExceptionImpl extends StoryTestException {
      List<String> actualStory;
      List<String> expectedStory;
@@ -52,5 +52,5 @@ public class StoryTestExceptionImpl extends StoryTestException {
         numOfFail++;
         return this;
     }
-
 }
+*/
