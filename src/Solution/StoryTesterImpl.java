@@ -13,7 +13,14 @@ import java.util.stream.Collectors;
 
 
 public class StoryTesterImpl implements StoryTester {
-
+    class MethodAndParams{
+        Method method;
+        ArrayList<ArrayList<String>> paremters;
+        MethodAndParams(){
+            method = null;
+            paremters = null;
+        }
+    }
 
     Class<? extends Annotation> annotationMaker(String annot){
         if(annot.equals("Given")) {
@@ -141,7 +148,7 @@ public class StoryTesterImpl implements StoryTester {
 
 
 
-    ArrayList<ArrayList> getParametersOfGivenAnnotation(ArrayList<String> sentenceList, Given given){
+    ArrayList< ArrayList<String> > getParametersOfGivenAnnotation(ArrayList<String> sentenceList, Given given){
         ArrayList<String> sentence = new ArrayList<>(sentenceList);//Create a copy of my sentence list
         sentence.remove(0); //Remove "Given" from my sentence
 
@@ -149,7 +156,7 @@ public class StoryTesterImpl implements StoryTester {
          int myWordsLen=myWords.length;
         if(sentence.size() != myWordsLen) return new ArrayList<>(); //If my sentence does not match annotation, return empty list.
 
-         ArrayList<ArrayList> parameters = new ArrayList<>();
+        ArrayList<ArrayList<String>> parameters = new ArrayList<>();
          ArrayList<String> param_inst = new ArrayList<>();
          parameters.add(param_inst);
 
@@ -166,7 +173,7 @@ public class StoryTesterImpl implements StoryTester {
         return parameters;
     }
 
-    ArrayList<ArrayList> getParametersOfWhenAnnotation(ArrayList<String> sentenceList, When when){
+    ArrayList<ArrayList<String>> getParametersOfWhenAnnotation(ArrayList<String> sentenceList, When when){
         ArrayList<String> sentence = new ArrayList<>(sentenceList); //Create a copy of my sentence list
         sentence.remove(0); //Remove "Given" from my sentence
 
@@ -174,7 +181,7 @@ public class StoryTesterImpl implements StoryTester {
         int myWordsLen=myWords.length;
         if(sentence.size() != myWordsLen) return new ArrayList<>(); //If my sentence does not match annotation, return empty list.
 
-        ArrayList<ArrayList> parameters = new ArrayList<>();
+        ArrayList<ArrayList<String>> parameters = new ArrayList<>();
         ArrayList<String> param_inst = new ArrayList<>();
         parameters.add(param_inst);
 
@@ -199,7 +206,7 @@ public class StoryTesterImpl implements StoryTester {
         }
     return len_until_or; //the len of the string in case or doesnt exists
     }
-    ArrayList<ArrayList> getParametersOfThenAnnotation(ArrayList<String> sentenceList, Then then){
+    ArrayList<ArrayList<String>> getParametersOfThenAnnotation(ArrayList<String> sentenceList, Then then){
         int wordCounter=0;
         ArrayList<String> sentence = new ArrayList<>(sentenceList);//Create a copy of my sentence list
         sentence.remove(0); //Remove "Given" from my sentence
@@ -214,10 +221,10 @@ public class StoryTesterImpl implements StoryTester {
         if(LenUntilOr(sentence) != myWordsLen) return new ArrayList<>(); //If my sentence does not match annotation, return empty list.
 
 
-        ArrayList<ArrayList> parameters = new ArrayList<>();
+        ArrayList<ArrayList<String>> parameters = new ArrayList<>();
         ArrayList<String> param_inst = new ArrayList<>();
         parameters.add(param_inst);
-
+        int param_list = 0;
         for(int i = 0; i < sentence_len; i++ ){ //For loop through the words in the annotation
 
             if(wordCounter > myWordsLen - 1 && !(sentence.get(i).equals("or"))) return new ArrayList<>();
@@ -225,12 +232,13 @@ public class StoryTesterImpl implements StoryTester {
             if(sentence.get(i).equals("or")){ //Checks if current word is "or" and act accordingly
                 wordCounter = 0;
                 ArrayList<String> new_param_inst = new ArrayList<>();
-                parameters.add(0,new_param_inst );
+                parameters.add(new_param_inst );
+                param_list ++;
                 continue;
             }
 
             if('&' == myWords[wordCounter].charAt(0)){ //Checks if current word in annotation is a value which needs to be provided.
-                ArrayList<String> tmp = parameters.get(0);
+                ArrayList<String> tmp = parameters.get(param_list);
                 tmp.add(sentence.get(i));
                 continue;
             }
@@ -273,19 +281,21 @@ public class StoryTesterImpl implements StoryTester {
         return myBackup;
     }
 
-     HashMap<Method,ArrayList<ArrayList>> getAnnotationsMethod(ArrayList<String> sentence, Class<?> testClass){//If class has a method with same annotation, return its methods with the list of parameters.
-         HashMap<Method, ArrayList<ArrayList>> myMethod = new HashMap<>();
-         ArrayList<ArrayList> tmp;
+    MethodAndParams getAnnotationsMethod(ArrayList<String> sentence, Class<?> testClass){//If class has a method with same annotation, return its methods with the list of parameters.
+         MethodAndParams myMethod = new MethodAndParams();
+         ArrayList<ArrayList<String>> tmp;
 
         if(sentence.get(0).equals("Given")){
             for(Method m: Arrays.stream(testClass.getDeclaredMethods()).filter(m -> m.isAnnotationPresent(Given.class)).collect(Collectors.toList())){
                 tmp = getParametersOfGivenAnnotation(sentence, m.getAnnotation(Given.class));
                 if(!(tmp.isEmpty())){
                     m.setAccessible(true);
-                    myMethod.put(m,tmp);
+                    myMethod.method = m;
+                    myMethod.paremters = tmp;
                     break;
                 }
             }
+            if(myMethod.method == null) return  null;
             return myMethod;
         }
         if(sentence.get(0).equals("When")){
@@ -293,10 +303,12 @@ public class StoryTesterImpl implements StoryTester {
                 tmp = getParametersOfWhenAnnotation(sentence, m.getAnnotation(When.class));
                 if(!(tmp.isEmpty())){
                     m.setAccessible(true);
-                    myMethod.put(m,tmp);
+                    myMethod.method = m;
+                    myMethod.paremters = tmp;
                     break;
                 }
             }
+            if(myMethod.method == null) return  null;
             return myMethod;
         }
          if(sentence.get(0).equals("Then")){
@@ -304,11 +316,13 @@ public class StoryTesterImpl implements StoryTester {
                 tmp = getParametersOfThenAnnotation(sentence, m.getAnnotation(Then.class));
                 if(!(tmp.isEmpty())){
                     m.setAccessible(true);
-                    myMethod.put(m,tmp);
+                    myMethod.method = m;
+                    myMethod.paremters = tmp;
                     break;
                 }
             }
-            return myMethod;
+             if(myMethod.method == null) return  null;
+             return myMethod;
         }
          return null;
     }
@@ -319,14 +333,14 @@ public class StoryTesterImpl implements StoryTester {
  Return the only method and the params(if it is then, there can be more than one) that describes
  the annotaion.
  **/
-    HashMap<Method,ArrayList<ArrayList>> getMethodFromClassTree(ArrayList<String> mySentence, Class<?> testClass){ //Checks in class tree if a method which matches our needs exists
+  MethodAndParams getMethodFromClassTree(ArrayList<String> mySentence, Class<?> testClass){ //Checks in class tree if a method which matches our needs exists
         //if true the annotation was not found.
-        if(testClass == null) return new HashMap<>();
+        if(testClass == null) return null;
 
         Class superClass=testClass.getSuperclass();
-        HashMap<Method, ArrayList<ArrayList>> goodm;
+        MethodAndParams goodm;
         goodm = getAnnotationsMethod(mySentence, testClass);
-        if(!(goodm.isEmpty())) return goodm; //empty check
+        if(goodm != null) return goodm; //empty check
 
         return getMethodFromClassTree(mySentence, superClass);
     }
@@ -348,7 +362,7 @@ public class StoryTesterImpl implements StoryTester {
         Object[] myBackup = null; //Object to put the backup in.
         Object testClassInstance = testClass.newInstance();
         String currCommand;//=Given/When/Then
-        HashMap<Method, ArrayList<ArrayList>> goodMethod;
+        MethodAndParams goodMethod;
         ArrayList<String> currParameters;
         Method method;
 
@@ -357,10 +371,10 @@ public class StoryTesterImpl implements StoryTester {
              currCommand = currSentenceList.get(0); //Sets current command to be the first word of the sentence (Given/When/Then)
             if(currCommand.equals("Given")){ //'Given' case
                 goodMethod = getMethodFromClassTree(currSentenceList, testClass);
-                if(goodMethod.isEmpty()) throw new GivenNotFoundException();
+                if(null == goodMethod) throw new GivenNotFoundException();
 
-                currParameters = goodMethod.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList()).get(0).get(0);
-                method = goodMethod.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList()).get(0); //Returns the good, matching method
+                currParameters = goodMethod.paremters.get(0);
+                method = goodMethod.method; //Returns the good, matching method
                 method.setAccessible(true);
                 method.invoke(testClassInstance, fillWithParameters(currParameters));
             }
@@ -373,10 +387,10 @@ public class StoryTesterImpl implements StoryTester {
                 }
 
                 goodMethod = getMethodFromClassTree(currSentenceList, testClass);
-                if(goodMethod.isEmpty()) throw new WhenNotFoundException();
+                if(null == goodMethod) throw new WhenNotFoundException();
 
-                currParameters = goodMethod.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList()).get(0).get(0);
-                method = goodMethod.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList()).get(0); //Returns the good, matching method
+                currParameters = goodMethod.paremters.get(0);
+                method = goodMethod.method; //Returns the good, matching method
                 method.setAccessible(true);
                 method.invoke(testClassInstance, fillWithParameters(currParameters));
             }
@@ -388,12 +402,12 @@ public class StoryTesterImpl implements StoryTester {
                 ArrayList<String> actualOutput=new ArrayList<>(), expectedOutput = new ArrayList<>();
                 goodMethod = getMethodFromClassTree(currSentenceList, testClass);
 
-                if(goodMethod.isEmpty()) throw new ThenNotFoundException(); //No matching methods found...
+                if(null == goodMethod) throw new ThenNotFoundException(); //No matching methods found...
 
                 //Iterate through all of the sentences and invoke them all.
-                for(ArrayList<String> sentence : goodMethod.entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList()).get(0)){ //ArrayList<String> sentence : ArrayList<ArrayList<String>>story
+                for(ArrayList<String> sentence : goodMethod.paremters){ //ArrayList<String> sentence : ArrayList<ArrayList<String>>story
 
-                    method = goodMethod.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList()).get(0); //Returns the good, matching method
+                    method = goodMethod.method; //Returns the good, matching method
                     try{
                         method.setAccessible(true);
                         method.invoke(testClassInstance, fillWithParameters(sentence)); //Invoke method of the current sentence with its parameters.

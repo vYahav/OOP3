@@ -48,7 +48,7 @@ public class CatTest {
         tester = new StoryTesterImpl();
     }
 
-/*
+
     @Test
     public  void errors() throws Exception {
 
@@ -92,7 +92,7 @@ public class CatTest {
 
 
     }
-*/
+
     @Test
     public void test1() throws Exception {
 
@@ -237,12 +237,12 @@ public class CatTest {
             Assert.assertEquals("Then the kaki size is 0 or the kaki size is 2", e.getSentence()) ;
             List<String> ls = e.getStoryExpected();
             Assert.assertEquals(2, ls.size());
-            Assert.assertEquals(0,ls.get(0));
-            Assert.assertEquals(2,ls.get(1));
+            Assert.assertEquals("0",ls.get(0));
+            Assert.assertEquals("2",ls.get(1));
             ls = e.getTestResult();
             Assert.assertEquals(2, ls.size());
-            Assert.assertEquals(1,ls.get(0));
-            Assert.assertEquals(1,ls.get(1));
+            Assert.assertEquals("1",ls.get(0));
+            Assert.assertEquals("1",ls.get(1));
 
             Assert.assertEquals(e.getNumFail(),2);
         }

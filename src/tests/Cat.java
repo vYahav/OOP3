@@ -4,7 +4,7 @@ package tests;
 
 
 
-public class Cat {
+public class Cat implements  Cloneable {
     private int age,hoursCleaningFloors;
     private String name;
     private boolean peeOnFloor;
@@ -17,7 +17,19 @@ public class Cat {
         int kaki_size = 0; //size is 0,1,2
         name="";
     }
-public void Kaki(int size){
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        Cat c = new Cat(0);
+        c.age = this.age;
+        c.hoursCleaningFloors = this.hoursCleaningFloors;
+        c.name = this.name;
+        c.peeOnFloor = this.peeOnFloor;
+        c .kaki_size =this.kaki_size;
+        return  c;
+    }
+
+    public void Kaki(int size){
       this.kaki_size = size;
     }
 public int GetKaki(){
