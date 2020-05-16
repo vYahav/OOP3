@@ -414,10 +414,8 @@ public class StoryTesterImpl implements StoryTester {
                         finishedSuccessfully = true;
                         break;
                     }catch(InvocationTargetException e){
-                        org.junit.ComparisonFailure  e1 = (org.junit.ComparisonFailure) e.getCause();
-                        expectedOutput.add(e1.getExpected());
-                        actualOutput.add(e1.getActual());
-
+                        expectedOutput.add(((org.junit.ComparisonFailure) e.getCause()).getExpected());
+                        actualOutput.add(((org.junit.ComparisonFailure) e.getCause()).getActual());
                     }
                 }
 

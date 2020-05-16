@@ -19,7 +19,8 @@ public class StoryTest extends StoryTestParent1 {
     }
 
     @Then("A's x is &x")
-    public void isX(Integer x) {
+    public void isX(Integer x) throws NotShortCircuitException {
+        if (x.equals(1024)) throw new NotShortCircuitException();
         try {
             Assert.assertEquals(x, a.getX());
         }
@@ -49,7 +50,8 @@ public class StoryTest extends StoryTestParent1 {
     }
 
     @When("A's z is &z")
-    private void A_z(String z) {
+    private void A_z(String z) throws NotShortCircuitException {
+        if (z.equals("Exception")) throw new NotShortCircuitException();
         a.setZ(z);
     }
 
@@ -60,7 +62,7 @@ public class StoryTest extends StoryTestParent1 {
     }
 
     @When("A's x is &x and y is &y and z is &z")
-    public void A_xyz(Integer x, String y, String z) {
+    public void A_xyz(Integer x, String y, String z) throws NotShortCircuitException {
         A_xy(x, y);
         A_z(z);
     }
