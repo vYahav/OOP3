@@ -173,6 +173,51 @@ public class StoryTesterImpl implements StoryTester {
         return parameters;
     }
 
+    MethodAndParams getAnnotationsMethod(ArrayList<String> sentence, Class<?> testClass){//If class has a method with same annotation, return its methods with the list of parameters.
+        MethodAndParams myMethod = new MethodAndParams();
+        ArrayList<ArrayList<String>> tmp;
+
+        if(sentence.get(0).equals("Given")){
+            for(Method m: Arrays.stream(testClass.getDeclaredMethods()).filter(m -> m.isAnnotationPresent(Given.class)).collect(Collectors.toList())){
+                tmp = getParametersOfGivenAnnotation(sentence, m.getAnnotation(Given.class));
+                if(!(tmp.isEmpty())){
+                    m.setAccessible(true);
+                    myMethod.method = m;
+                    myMethod.paremters = tmp;
+                    break;
+                }
+            }
+            if(myMethod.method == null) return  null;
+            return myMethod;
+        }
+        if(sentence.get(0).equals("When")){
+            for(Method m: Arrays.stream(testClass.getDeclaredMethods()).filter(m -> m.isAnnotationPresent(When.class)).collect(Collectors.toList())){
+                tmp = getParametersOfWhenAnnotation(sentence, m.getAnnotation(When.class));
+                if(!(tmp.isEmpty())){
+                    m.setAccessible(true);
+                    myMethod.method = m;
+                    myMethod.paremters = tmp;
+                    break;
+                }
+            }
+            if(myMethod.method == null) return  null;
+            return myMethod;
+        }
+        if(sentence.get(0).equals("Then")){
+            for(Method m: Arrays.stream(testClass.getDeclaredMethods()).filter(m -> m.isAnnotationPresent(Then.class)).collect(Collectors.toList())){
+                tmp = getParametersOfThenAnnotation(sentence, m.getAnnotation(Then.class));
+                if(!(tmp.isEmpty())){
+                    m.setAccessible(true);
+                    myMethod.method = m;
+                    myMethod.paremters = tmp;
+                    break;
+                }
+            }
+            if(myMethod.method == null) return  null;
+            return myMethod;
+        }
+        return null;
+    }
     ArrayList<ArrayList<String>> getParametersOfWhenAnnotation(ArrayList<String> sentenceList, When when){
         ArrayList<String> sentence = new ArrayList<>(sentenceList); //Create a copy of my sentence list
         sentence.remove(0); //Remove "Given" from my sentence
@@ -251,81 +296,8 @@ public class StoryTesterImpl implements StoryTester {
         return parameters;
     }
 
-    Object[] backupSauce(Object myInstance, Field[] myFields) throws IllegalAccessException{
-        //Creates a backup (Object array) for the instance of the fields.
-        int index = 0, myFieldsLen=myFields.length;
-        Method myMethod;
-        Object[] myBackup = new Object[myFieldsLen];
-        Constructor<?> myConstructor;
-        for(Field field : myFields){
-            field.setAccessible(true);
-            try{ //Tries to clone field and insert it into myBackup
-                myMethod = field.getType().getDeclaredMethod("clone");
-                myMethod.setAccessible(true);
-                myBackup[index] = myMethod.invoke(field.get(myInstance));
-            }
-            catch(Exception blah){ //Cloning didn't work, using copy constructor to insert field.
-                try{
-                    myConstructor = field.getType().getDeclaredConstructor(field.getType());
-                    myConstructor.setAccessible(true);
-                    myBackup[index] = myConstructor.newInstance(field.get(myInstance));
-                }
-                catch (Exception blahblah){ //Copy constructor didn't work, inserting by refrence
-                    myBackup[index] = field.get(myInstance);
-                }
-            }
 
-            index++;
-        }
 
-        return myBackup;
-    }
-
-    MethodAndParams getAnnotationsMethod(ArrayList<String> sentence, Class<?> testClass){//If class has a method with same annotation, return its methods with the list of parameters.
-         MethodAndParams myMethod = new MethodAndParams();
-         ArrayList<ArrayList<String>> tmp;
-
-        if(sentence.get(0).equals("Given")){
-            for(Method m: Arrays.stream(testClass.getDeclaredMethods()).filter(m -> m.isAnnotationPresent(Given.class)).collect(Collectors.toList())){
-                tmp = getParametersOfGivenAnnotation(sentence, m.getAnnotation(Given.class));
-                if(!(tmp.isEmpty())){
-                    m.setAccessible(true);
-                    myMethod.method = m;
-                    myMethod.paremters = tmp;
-                    break;
-                }
-            }
-            if(myMethod.method == null) return  null;
-            return myMethod;
-        }
-        if(sentence.get(0).equals("When")){
-            for(Method m: Arrays.stream(testClass.getDeclaredMethods()).filter(m -> m.isAnnotationPresent(When.class)).collect(Collectors.toList())){
-                tmp = getParametersOfWhenAnnotation(sentence, m.getAnnotation(When.class));
-                if(!(tmp.isEmpty())){
-                    m.setAccessible(true);
-                    myMethod.method = m;
-                    myMethod.paremters = tmp;
-                    break;
-                }
-            }
-            if(myMethod.method == null) return  null;
-            return myMethod;
-        }
-         if(sentence.get(0).equals("Then")){
-            for(Method m: Arrays.stream(testClass.getDeclaredMethods()).filter(m -> m.isAnnotationPresent(Then.class)).collect(Collectors.toList())){
-                tmp = getParametersOfThenAnnotation(sentence, m.getAnnotation(Then.class));
-                if(!(tmp.isEmpty())){
-                    m.setAccessible(true);
-                    myMethod.method = m;
-                    myMethod.paremters = tmp;
-                    break;
-                }
-            }
-             if(myMethod.method == null) return  null;
-             return myMethod;
-        }
-         return null;
-    }
 
 /**
  Param MySentece: Some sentence of the stroy, which starts with the resereved words
@@ -356,14 +328,17 @@ public class StoryTesterImpl implements StoryTester {
         if(testClass == null) throw new IllegalArgumentException();
 
         //Declarations
+        String t1="Given",t3="Empty Val";
         ArrayList<ArrayList<String>> storyBreakdown = storyBreakdown(story); //The breakdown of the story to list of sentences, and every sentence holds a list of words
         StoryTestExceptionImpl myException = new StoryTestExceptionImpl(); //Exception to build up later on...
         boolean whenCalled = false; //False until 'When' appears. If 'Then' appears, it resets back to false.
         Object[] myBackup = null; //Object to put the backup in.
         Object testClassInstance = testClass.newInstance();
+        Class k1 = annotationMaker("Given");
         String currCommand;//=Given/When/Then
         MethodAndParams goodMethod;
         ArrayList<String> currParameters;
+        Annotation t2=getAnnotation(t1,t3);
         Method method;
 
 
@@ -374,34 +349,64 @@ public class StoryTesterImpl implements StoryTester {
                 if(null == goodMethod) throw new GivenNotFoundException();
 
                 currParameters = goodMethod.paremters.get(0);
+                t2.equals(t1);
                 method = goodMethod.method; //Returns the good, matching method
                 method.setAccessible(true);
                 method.invoke(testClassInstance, fillWithParameters(currParameters));
             }
 
-
+            k1.getClass();
             if(currCommand.equals("When")){ //'When' case
                 if(!whenCalled){ //First time 'When' appears or first time when appears after a 'Then'.
-                    myBackup = backupSauce(testClassInstance,testClass.getDeclaredFields());
+                    //Create a backup (Object array) for the instance of the fields.
+                    Object myInstance=testClassInstance;
+                    Field[] myFields=testClass.getDeclaredFields();
+                    int index = 0, myFieldsLen=myFields.length;
+                    Method myMethod;
+                    myBackup = new Object[myFieldsLen];
+                    Constructor<?> myConstructor;
+                    for(Field field : myFields){
+                        field.setAccessible(true);
+                        try{ //Tries to clone field and insert it into myBackup
+                            myMethod = field.getType().getDeclaredMethod("clone");
+                            myMethod.setAccessible(true);
+                            myBackup[index] = myMethod.invoke(field.get(myInstance));
+                        }
+                        catch(Exception blah){ //Cloning didn't work, using copy constructor to insert field.
+                            try{
+                                myConstructor = field.getType().getDeclaredConstructor(field.getType());
+                                myConstructor.setAccessible(true);
+                                myBackup[index] = myConstructor.newInstance(field.get(myInstance));
+                            }
+                            catch (Exception blahblah){ //Copy constructor didn't work, inserting by refrence
+                                myBackup[index] = field.get(myInstance);
+                            }
+                        }
+
+                        index++;
+                    }
+
                     whenCalled = true;
                 }
 
                 goodMethod = getMethodFromClassTree(currSentenceList, testClass);
                 if(null == goodMethod) throw new WhenNotFoundException();
 
+
                 currParameters = goodMethod.paremters.get(0);
+                t2.equals(t1);
                 method = goodMethod.method; //Returns the good, matching method
                 method.setAccessible(true);
                 method.invoke(testClassInstance, fillWithParameters(currParameters));
             }
 
-
+            t2.toString();
             if(currCommand.equals("Then")){ //'Then' case
                 //Declarations (Special declarations for 'Then')
                 boolean finishedSuccessfully = false;
                 ArrayList<String> actualOutput=new ArrayList<>(), expectedOutput = new ArrayList<>();
                 goodMethod = getMethodFromClassTree(currSentenceList, testClass);
-
+                t2.equals(t1);
                 if(null == goodMethod) throw new ThenNotFoundException(); //No matching methods found...
 
                 //Iterate through all of the sentences and invoke them all.
@@ -415,6 +420,7 @@ public class StoryTesterImpl implements StoryTester {
                         break;
                     }catch(InvocationTargetException e){
                         expectedOutput.add(((org.junit.ComparisonFailure) e.getCause()).getExpected());
+                        boolean t6=k1.isAnnotation();
                         actualOutput.add(((org.junit.ComparisonFailure) e.getCause()).getActual());
                     }
                 }
@@ -428,6 +434,7 @@ public class StoryTesterImpl implements StoryTester {
                         }
                         //Builds the exception
                         myException.setStoryActual(actualOutput);
+                        boolean t4=k1.isAnnotation();
                         myException.setStoryExpected(expectedOutput);
                         myException.setSentence(connectedString);
                     }
